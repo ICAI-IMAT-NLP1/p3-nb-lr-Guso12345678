@@ -1,12 +1,22 @@
 from typing import List, Dict
 from collections import Counter
 import torch
+import numpy as np 
 
 try:
     from src.utils import SentimentExample, tokenize
 except ImportError:
     from utils import SentimentExample, tokenize
 
+
+import numpy as np
+from typing import List
+
+import numpy as np
+from typing import List
+
+import numpy as np
+from typing import List
 
 def read_sentiment_examples(infile: str) -> List[SentimentExample]:
     """
@@ -18,11 +28,23 @@ def read_sentiment_examples(infile: str) -> List[SentimentExample]:
     Returns:
         A list of SentimentExample objects parsed from the file.
     """
-    # TODO: Open the file, go line by line, separate sentence and label, tokenize the sentence and create SentimentExample object
-    examples: List[SentimentExample] = None
+    examples: List[SentimentExample] = []
+
+    with open(infile, "r", encoding="utf-8") as file:
+        lines = file.read().splitlines()  # Leer líneas del archivo
+
+    for line in lines:
+        try:
+            line = line.strip()
+            partes = line.rsplit("\t", 1)
+            texto, label_str = partes
+            label = int(label_str)
+            palabra_tokenizada = tokenize(texto)
+            examples.append(SentimentExample(palabra_tokenizada, label))
+
+        except: 
+            continue
     return examples
-
-
 def build_vocab(examples: List[SentimentExample]) -> Dict[str, int]:
     """
     Creates a vocabulary from a list of SentimentExample objects.
@@ -36,8 +58,13 @@ def build_vocab(examples: List[SentimentExample]) -> Dict[str, int]:
         Dict[str, int]: A dictionary representing the vocabulary, where each word is mapped to a unique index.
     """
     # TODO: Count unique words in all the examples from the training set
-    vocab: Dict[str, int] = None
-
+    vocab: Dict[str, int] = {}
+    indice = 0 
+    for palabra in examples: 
+        for p in palabra.words: 
+            if p not in vocab.keys(): 
+                vocab[p] = indice 
+                indice += 1
     return vocab
 
 
@@ -57,6 +84,19 @@ def bag_of_words(
         torch.Tensor: A tensor representing the bag-of-words vector.
     """
     # TODO: Converts list of words into BoW, take into account the binary vs full
-    bow: torch.Tensor = None
-
-    return bow
+    if binary == True:
+        diccionario = {}
+        for palabra,valor in vocab.items(): 
+            if palabra in text: 
+                diccionario[palabra] = 1
+            else: 
+                diccionario[palabra] = 0
+        lista_valores = [valor for palabra,valor in diccionario.items()] 
+        bow: torch.Tensor = torch.tensor(lista_valores)
+        return bow
+    else:
+        lista = []
+        for palabra,valor in vocab.items(): 
+            lista.append(text.count(palabra))
+        bow:torch.Tensor = torch.tensor(lista)
+        return bow

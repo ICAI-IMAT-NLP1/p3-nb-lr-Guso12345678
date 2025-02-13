@@ -79,6 +79,64 @@ class SentimentExample:
         raise NotImplemented
 
 
+###FUNCIONES AUXILIARES: SE QUE NO ES LO MAS EFICIENTE. 
+def verdaderos_positivos(predictions: torch.Tensor, labels: torch.Tensor)->int: 
+    mascara_positiva_predictions = (predictions == 1).tolist()
+    mascara_positiva_labels = (labels == 1).tolist() 
+    cont = 0 
+    for i,j in zip(mascara_positiva_predictions,mascara_positiva_labels): 
+        if i == j and i == True and j == True: 
+            cont += 1 
+    return cont
+def verdaderos_negativos(predictions: torch.Tensor, labels: torch.Tensor)->int: 
+    mascara_positiva_predictions = (predictions == 1).tolist()
+    mascara_positiva_labels = (labels == 1).tolist() 
+    cont = 0 
+    for i,j in zip(mascara_positiva_predictions,mascara_positiva_labels): 
+        if i == j and i == False and j == False: 
+            cont += 1 
+    return cont
+def falsos_positivos(predictions: torch.Tensor, labels: torch.Tensor)->int: 
+    mascara_positiva_predictions = (predictions == 1).tolist()
+    mascara_positiva_labels = (labels == 1).tolist() 
+    cont = 0 
+    for i,j in zip(mascara_positiva_predictions,mascara_positiva_labels): 
+        if i != j and i == True and j == False: 
+            cont += 1 
+    return cont
+
+def falsos_negativos(predictions: torch.Tensor, labels: torch.Tensor)->int: 
+    mascara_positiva_predictions = (predictions == 1).tolist()
+    mascara_positiva_labels = (labels == 1).tolist() 
+    cont = 0 
+    for i,j in zip(mascara_positiva_predictions,mascara_positiva_labels): 
+        if i != j and i == False and j == True: 
+            cont += 1 
+    return cont
+
+
+def accuracy(predictions: torch.Tensor, labels: torch.Tensor)->float: 
+    tp = verdaderos_positivos(predictions,labels)
+    tn = verdaderos_negativos(predictions,labels)
+    fp = falsos_positivos(predictions,labels)
+    fn = falsos_negativos(predictions,labels)
+    return (tp+tn)/(tp+tn+fp+fn)
+
+def precision(predictions: torch.Tensor, labels: torch.Tensor)->float: 
+    tp = verdaderos_positivos(predictions,labels)
+    fp = falsos_positivos(predictions,labels)
+    return tp/(tp+fp)
+
+def recall(predictions: torch.Tensor, labels: torch.Tensor)->float: 
+    tp = verdaderos_positivos(predictions,labels)
+    fn = falsos_negativos(predictions,labels)
+    return tp/(tp+fn)
+
+def f1_score(predictions: torch.Tensor, labels: torch.Tensor) ->float: 
+    precision1 = precision(predictions,labels)
+    recall1 = recall(predictions,labels)
+    return (2*precision1*recall1)/(precision1+recall1)
+
 def evaluate_classification(predictions: torch.Tensor, labels: torch.Tensor) -> Dict[str, float]:
     """
     Evaluate classification metrics including accuracy, precision, recall, and F1-score.
@@ -90,6 +148,6 @@ def evaluate_classification(predictions: torch.Tensor, labels: torch.Tensor) -> 
     Returns:
         dict: A dictionary containing the calculated metrics.
     """
-    metrics: Dict[str, float] = None
+    metrics: Dict[str, float] = {"accuracy":accuracy(predictions,labels),"precision":precision(predictions,labels),"recall":recall(predictions,labels),"f1_score":f1_score(predictions,labels)}
 
     return metrics
